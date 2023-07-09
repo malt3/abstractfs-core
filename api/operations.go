@@ -22,6 +22,11 @@ type SourceNode struct {
 	Open func() (io.ReadCloser, error)
 }
 
+type CAS interface {
+	CASReader
+	CASWriter
+}
+
 type CASReader interface {
 	// Open returns a reader for the given SRI.
 	// If the SRI does not exist, it returns fs.ErrNotExist.
@@ -31,3 +36,6 @@ type CASReader interface {
 type CASWriter interface {
 	Write(sri string, r io.Reader) error
 }
+
+// CloseWaitFunc is a function that closes a resource and waits for it to be closed.
+type CloseWaitFunc func() error

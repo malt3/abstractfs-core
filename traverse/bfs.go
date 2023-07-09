@@ -26,8 +26,3 @@ func BFS(root *api.Node, visit func(dir string, node *api.Node)) {
 		visit(loc.dir, loc.node)
 	}
 }
-
-type location struct {
-	dir  string
-	node *api.Node
-}

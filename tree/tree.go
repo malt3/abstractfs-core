@@ -96,6 +96,9 @@ func Insert(tree api.Tree, dir string, stat api.Stat) error {
 
 // Get returns the node at the given path.
 func Get(tree api.Tree, path string) *api.Node {
+	if path == "/" || path == "." || path == "" {
+		return tree.Root
+	}
 	if len(path) > 0 && path[0] == '/' {
 		path = path[1:]
 	}
