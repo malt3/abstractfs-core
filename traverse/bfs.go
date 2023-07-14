@@ -20,8 +20,7 @@ func BFS(root *api.Node, visit func(dir string, node *api.Node)) {
 			if dir != "" {
 				dir += "/"
 			}
-			dir += loc.node.Stat.Name
-			queue.PushBack(location{dir: dir, node: child})
+			queue.PushBack(location{dir: dir + loc.node.Stat.Name, node: child})
 		}
 		visit(loc.dir, loc.node)
 	}

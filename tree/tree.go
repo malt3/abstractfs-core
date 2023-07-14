@@ -27,7 +27,7 @@ func FromSource(source api.Source) (tree api.Tree, err error) {
 			return tree, err
 		}
 		var dir string
-		dir, node.Stat.Name = normalizeFlatName(node.Stat.Name)
+		dir, node.Stat.Name = normalizeFlatName(node.Stat.Name, node.Stat.Kind)
 		Insert(tree, dir, node.Stat)
 	}
 	return tree, nil
@@ -53,7 +53,7 @@ func Unflatten(flat api.Flat) (tree api.Tree) {
 	}
 	for _, file := range flat.Files {
 		var dir string
-		dir, file.Name = normalizeFlatName(file.Name)
+		dir, file.Name = normalizeFlatName(file.Name, file.Kind)
 		Insert(tree, dir, file)
 	}
 	return
@@ -70,7 +70,7 @@ func Insert(tree api.Tree, dir string, stat api.Stat) error {
 	if len(dir) > 0 && dir[0] == '/' {
 		dir = dir[1:]
 	}
-	path := strings.Split(dir, "/")
+	path := strings.Split(strings.TrimSuffix(dir, "/"), "/")
 	if len(path) == 1 && path[0] == "" {
 		path = nil
 	}
@@ -102,7 +102,7 @@ func Get(tree api.Tree, path string) *api.Node {
 	if len(path) > 0 && path[0] == '/' {
 		path = path[1:]
 	}
-	parts := strings.Split(path, "/")
+	parts := strings.Split(strings.TrimSuffix(path, "/"), "/")
 	if len(parts) == 1 && parts[0] == "" {
 		parts = nil
 	}
@@ -144,7 +144,7 @@ func sortChildren(node *api.Node) {
 
 // normalizeFlatName normalizes a flat name.
 // It returns the dir and the name.
-func normalizeFlatName(name string) (string, string) {
+func normalizeFlatName(name, kind string) (string, string) {
 	dir := path.Dir(name)
 	if strings.HasPrefix(dir, "/") {
 		dir = dir[1:]
@@ -154,6 +154,9 @@ func normalizeFlatName(name string) (string, string) {
 		name = ""
 	default:
 		name = path.Base(name)
+	}
+	if kind == "directory" {
+		dir = strings.TrimSuffix(dir, name)
 	}
 	return dir, name
 }
