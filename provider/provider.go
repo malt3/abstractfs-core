@@ -17,7 +17,6 @@ type Provider interface {
 
 type SourceBuilder interface {
 	WithSourceRef(string) SourceBuilder
-	Set(string, any) SourceBuilder
 	Build() (api.Source, api.CloseWaitFunc, error)
 }
 
