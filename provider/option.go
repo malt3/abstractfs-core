@@ -1,6 +1,7 @@
 package provider
 
 import (
+	"archive/tar"
 	"errors"
 	"fmt"
 	"math/bits"
@@ -96,6 +97,8 @@ func valueFromString(s string, t reflect.Type) (any, error) {
 	switch t {
 	case typeSRIAlgorithm:
 		return sri.AlgorithmFromString(s)
+	case typeTarFormat:
+		return tarFormatFromString(s)
 	}
 	switch t.Kind() {
 	case reflect.String:
@@ -228,8 +231,21 @@ func floatFromString[V float](s string) (V, error) {
 	return V(i), nil
 }
 
+func tarFormatFromString(s string) (tar.Format, error) {
+	switch strings.ToLower(s) {
+	case "pax":
+		return tar.FormatPAX, nil
+	case "gnu":
+		return tar.FormatGNU, nil
+	case "ustar":
+		return tar.FormatUSTAR, nil
+	}
+	return tar.FormatUnknown, errors.New("invalid tar format")
+}
+
 var (
 	typeSRIAlgorithm = reflect.TypeOf(sri.SHA256)
+	typeTarFormat    = reflect.TypeOf(tar.FormatUnknown)
 )
 
 type integer interface {
