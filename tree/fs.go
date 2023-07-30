@@ -6,6 +6,8 @@ import (
 	"time"
 
 	"github.com/malt3/abstractfs-core/api"
+	"github.com/malt3/abstractfs-core/cas/recorder"
+	"github.com/malt3/abstractfs-core/sri"
 )
 
 // TreeFS implements io/fs.FS and io/fs.ReadDirFS for a tree.
@@ -45,6 +47,40 @@ func (t *TreeFS) ReadDir(name string) ([]fs.DirEntry, error) {
 		entries = append(entries, dirEntry{child.Stat})
 	}
 	return entries, nil
+}
+
+// Record records all file contents of the tree to a io.Writer.
+// The format is compatible with the recorder protocol.
+func (t *TreeFS) Record(w io.Writer) error {
+	return fs.WalkDir(t, ".", func(path string, d fs.DirEntry, err error) error {
+		if err != nil {
+			return err
+		}
+		if !d.Type().IsRegular() {
+			return nil
+		}
+
+		fInfo, err := d.Info()
+		if err != nil {
+			return err
+		}
+		stat, ok := fInfo.Sys().(api.Stat)
+		if !ok {
+			return &fs.PathError{Op: "record", Path: path, Err: fs.ErrInvalid}
+		}
+		sri, error := sri.FromString(stat.Payload)
+		if error != nil {
+			return err
+		}
+
+		file, err := t.Open(path)
+		if err != nil {
+			return err
+		}
+		defer file.Close()
+
+		return recorder.Encode(w, sri, stat.Size, file)
+	})
 }
 
 // file implements fs.File for a node.
